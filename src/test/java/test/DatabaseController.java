@@ -1,8 +1,8 @@
 package test;
 
-import Entity.Address;
-import Entity.PaymentCard;
-import Entity.User;
+import entity.Address;
+import entity.PaymentCard;
+import entity.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
