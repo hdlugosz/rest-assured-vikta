@@ -19,7 +19,7 @@ public class TestAPI {
     private String addressTable;
     private String paymentCardTable;
 
-    Database db;
+    private DatabaseController db;
 
     @BeforeAll
     public void initialize() throws IOException {
@@ -35,7 +35,7 @@ public class TestAPI {
         String dbUsername = properties.getPropertyValue("dbUsername");
         String dbPassword = properties.getPropertyValue("dbPassword");
 
-        db = new Database(dbURL, dbUsername, dbPassword);
+        db = new DatabaseController(dbURL, dbUsername, dbPassword);
     }
 
     @Test
@@ -56,10 +56,10 @@ public class TestAPI {
     @Test
     public void validateUserExistence() {
         int id = 2000;
-
-        db.addNewUser(id);
         String emailField = "email";
         String email = "testMail@gmail.com";
+
+        db.addNewUser(id);
 
         given().param("id", id).
                 when().get(baseURI + USER_ENDPOINT).
@@ -70,7 +70,6 @@ public class TestAPI {
 
     @Test
     public void validateAddingUser() {
-
         String login = "testLogin";
 
         JSONObject request = new JSONObject();
@@ -85,8 +84,9 @@ public class TestAPI {
         request.put("paymentCardIds", null);
         request.put("surname", "testSurname");
 
-        given().header("Content-Type", "application/json").
-                body(request.toJSONString()).when().post(baseURI + USER_ENDPOINT).then().statusCode(201);
+        given().header("Content-Type", "application/json").body(request.toJSONString()).
+                when().post(baseURI + USER_ENDPOINT).
+                then().statusCode(201);
 
         Assertions.assertTrue(db.exists(userTable, db.selectUserIdByLogin(login)));
 
@@ -96,6 +96,7 @@ public class TestAPI {
     @Test
     public void validateDeletingUser() {
         int id = 3000;
+
         db.addNewUser(id);
 
         given().param("id", id).
@@ -108,6 +109,7 @@ public class TestAPI {
     @Test
     public void validateDeletingUserThatDoesntExist() {
         int id = 4000;
+
         given().param("id", id).
                 when().delete(baseURI + USER_ENDPOINT).
                 then().statusCode(404);
@@ -132,9 +134,9 @@ public class TestAPI {
         request.put("ownerName", "testOwner");
         request.put("userId", null);
 
-        given().header("Content-Type", "application/json").
-                body(request.toJSONString()).when().put(baseURI + PAYMENT_CARD_ENDPOINT).then().statusCode(200).
-                and().body(expirationDateField, equalTo(expirationDate));
+        given().header("Content-Type", "application/json").body(request.toJSONString()).
+                when().put(baseURI + PAYMENT_CARD_ENDPOINT).
+                then().statusCode(200).and().body(expirationDateField, equalTo(expirationDate));
 
         db.deleteById(paymentCardTable, id);
     }
