@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.io.IOException;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.equalTo;
@@ -15,11 +16,12 @@ public class TestAPI {
     private String ADDRESS_ENDPOINT;
     private String USER_ENDPOINT;
     private String PAYMENT_CARD_ENDPOINT;
-    private String userTable;
-    private String addressTable;
-    private String paymentCardTable;
 
     private DatabaseController db;
+
+    public int generateID() {
+        return ThreadLocalRandom.current().nextInt(999, 10000);
+    }
 
     @BeforeAll
     public void initialize() throws IOException {
@@ -28,9 +30,6 @@ public class TestAPI {
         ADDRESS_ENDPOINT = properties.getPropertyValue("ADDRESS_ENDPOINT");
         USER_ENDPOINT = properties.getPropertyValue("USER_ENDPOINT");
         PAYMENT_CARD_ENDPOINT = properties.getPropertyValue("PAYMENT_CARD_ENDPOINT");
-        userTable = properties.getPropertyValue("userTable");
-        addressTable = properties.getPropertyValue("addressTable");
-        paymentCardTable = properties.getPropertyValue("paymentCardTable");
         String dbURL = properties.getPropertyValue("dbURL");
         String dbUsername = properties.getPropertyValue("dbUsername");
         String dbPassword = properties.getPropertyValue("dbPassword");
@@ -40,115 +39,117 @@ public class TestAPI {
 
     @Test
     public void validateAddressExistence() {
-        int id = 1000;
         String addressNicknameField = "addressNickname";
-        String addressNickname = "testAddress";
+        Address address = Address.generateRandomAddress();
 
-        db.addNewAddress(id);
+        db.addNewAddress(address);
 
-        given().param("id", id).
+        given().param("id", address.getId()).
                 when().get(baseURI + ADDRESS_ENDPOINT).
-                then().statusCode(200).and().body(addressNicknameField, equalTo(addressNickname));
+                then().statusCode(200).and().body(addressNicknameField, equalTo(address.getAddressNickname()));
 
-        db.deleteById(addressTable, id);
+        Assertions.assertTrue(db.existsAddress(address.getId()));
+
+        db.deleteAddressById(address.getId());
     }
 
     @Test
     public void validateUserExistence() {
-        int id = 2000;
         String emailField = "email";
-        String email = "testMail@gmail.com";
+        User user = User.generateRandomUser();
 
-        db.addNewUser(id);
+        db.addNewUser(user);
 
-        given().param("id", id).
+        given().param("id", user.getId()).
                 when().get(baseURI + USER_ENDPOINT).
-                then().statusCode(200).and().body(emailField, equalTo(email));
+                then().statusCode(200).and().body(emailField, equalTo(user.getEmail()));
 
-        db.deleteById(userTable, id);
+        Assertions.assertTrue(db.existsUser(user.getId()));
+
+        db.deleteUserById(user.getId());
     }
 
     @Test
     public void validateAddingUser() {
-        String login = "testLogin";
+        User user = User.generateRandomUser();
 
         JSONObject request = new JSONObject();
         request.put("addressIds", null);
-        request.put("email", "testMail@gmail.com");
-        request.put("firstName", "testName");
+        request.put("email", user.getEmail());
+        request.put("firstName", user.getFirstName());
         request.put("id", null);
-        request.put("loginName", "testLogin");
-        request.put("middleName", "testMiddlename");
-        request.put("password", "test1234");
-        request.put("pathToAvatarImage", "testPath.com");
+        request.put("loginName", user.getLoginName());
+        request.put("middleName", user.getMiddleName());
+        request.put("password", user.getPassword());
+        request.put("pathToAvatarImage", user.getPathToAvatarImage());
         request.put("paymentCardIds", null);
-        request.put("surname", "testSurname");
+        request.put("surname", user.getSurname());
 
         given().header("Content-Type", "application/json").body(request.toJSONString()).
                 when().post(baseURI + USER_ENDPOINT).
                 then().statusCode(201);
 
-        Assertions.assertTrue(db.exists(userTable, db.selectUserIdByLogin(login)));
+        Assertions.assertTrue(db.existsUser(db.selectUserIdByLogin(user.getLoginName())));
 
-        db.deleteById(userTable, db.selectUserIdByLogin(login));
+        db.deleteUserById(db.selectUserIdByLogin(user.getLoginName()));
     }
 
     @Test
     public void validateDeletingUser() {
-        int id = 3000;
+        User user = User.generateRandomUser();
 
-        db.addNewUser(id);
+        db.addNewUser(user);
 
-        given().param("id", id).
+        given().param("id", user.getId()).
                 when().delete(baseURI + USER_ENDPOINT).
                 then().statusCode(200);
 
-        Assertions.assertFalse(db.exists(userTable, id));
+        Assertions.assertFalse(db.existsUser(user.getId()));
     }
 
     @Test
     public void validateDeletingUserThatDoesntExist() {
-        int id = 4000;
+        int id = generateID();
 
         given().param("id", id).
                 when().delete(baseURI + USER_ENDPOINT).
                 then().statusCode(404);
 
-        Assertions.assertFalse(db.exists(userTable, id));
+        Assertions.assertFalse(db.existsUser(id));
     }
 
     @Test
     public void validateUpdatingPaymentCard() {
-        int id = 5000;
         String expirationDateField = "expirationDate";
-        String expirationDate = "2024-12-20";
+        PaymentCard paymentCard = PaymentCard.generateRandomPaymentCard();
+        String newExpirationDate = PaymentCard.generateExpirationDate();
 
-        db.addNewPaymentCard(id);
+        db.addNewPaymentCard(paymentCard);
 
         JSONObject request = new JSONObject();
-        request.put("cardCode", "312");
-        request.put("cardNickName", "testCardNickname");
-        request.put("cardNumber", "343914624684393");
-        request.put("expirationDate", "2024-12-20");
-        request.put("id", 5000);
-        request.put("ownerName", "testOwner");
+        request.put("cardCode", paymentCard.getCardCode());
+        request.put("cardNickName", paymentCard.getCardNickName());
+        request.put("cardNumber", paymentCard.getCardNumber());
+        request.put("expirationDate", newExpirationDate);
+        request.put("id", paymentCard.getId());
+        request.put("ownerName", paymentCard.getOwnerName());
         request.put("userId", null);
 
         given().header("Content-Type", "application/json").body(request.toJSONString()).
                 when().put(baseURI + PAYMENT_CARD_ENDPOINT).
-                then().statusCode(200).and().body(expirationDateField, equalTo(expirationDate));
+                then().statusCode(200).and().body(expirationDateField, equalTo(newExpirationDate));
 
-        db.deleteById(paymentCardTable, id);
+        db.deletePaymentCardById(paymentCard.getId());
     }
 
     @Test
     public void validateDeletingPaymentCardThatDoesntExist() {
-        int id = 6000;
+        int id = generateID();
 
         given().param("id", id).
                 when().delete(baseURI + PAYMENT_CARD_ENDPOINT).
                 then().statusCode(404);
 
-        Assertions.assertFalse(db.exists(paymentCardTable, id));
+        Assertions.assertFalse(db.existsPaymentCard(id));
     }
 }

@@ -12,43 +12,61 @@ public class DatabaseController {
         this.dbPassword = dbPassword;
     }
 
-    public void addNewUser(int id) {
-        query = "insert into user "
+    public void addNewUser(User user) {
+        query = "INSERT INTO user "
                 + " (id, active, email, first_name, loginname, middle_name, password, path_to_avatar_image, surname)"
-                + " values ( ?, 1, 'testMail@gmail.com', 'testName', 'testLogin', 'testMiddlename', 'qwe123123',"
-                + " 'testPath.com', 'TestSurname')";
+                + " VALUES ( ?, 1, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection con = DriverManager.getConnection(dbURL, dbUsername, dbPassword);
              PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setInt(1, id);
+            ps.setInt(1, user.getId());
+            ps.setString(2, user.getEmail());
+            ps.setString(3, user.getFirstName());
+            ps.setString(4, user.getLoginName());
+            ps.setString(5, user.getMiddleName());
+            ps.setString(6, user.getPassword());
+            ps.setString(7, user.getPathToAvatarImage());
+            ps.setString(8, user.getSurname());
             ps.executeUpdate();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
 
-    public void addNewAddress(int id) {
-        query = "insert into address "
+    public void addNewAddress(Address address) {
+        query = "INSERT INTO address "
                 + " (id, address_nickname, city_name, postal_code, region_name, street, street_additional, user_id)"
-                + " values ( ?, 'testAddress', 'testCity', '20200', 'testRegion', 'testStreet', 'testAdditional', null)";
+                + " VALUES ( ?, ?, ?, ?, ?, ?, ?, null)";
 
         try (Connection con = DriverManager.getConnection(dbURL, dbUsername, dbPassword);
              PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setInt(1, id);
+            ps.setInt(1, address.getId());
+            ps.setString(2, address.getAddressNickname());
+            ps.setString(3, address.getCityName());
+            ps.setString(4, address.getPostalCode());
+            ps.setString(5, address.getRegionName());
+            ps.setString(6, address.getStreet());
+            ps.setString(7, address.getStreetAdditional());
             ps.executeUpdate();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
 
-    public void addNewPaymentCard(int id) {
-        query = "insert into paymentcard"
+    public void addNewPaymentCard(PaymentCard paymentCard) {
+        query = "INSERT INTO paymentcard"
                 + " (id, card_code, card_nick_name, card_number, expiration_date, owner_name, user_id)"
-                + " values ( ?, '312', 'testCardNickname', '343914624684393', '2022-12-20',  'testOwner', null)";
+                + " VALUES ( ?, ?, ?, ?, ?, ?, null)";
 
         try (Connection con = DriverManager.getConnection(dbURL, dbUsername, dbPassword);
              PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setInt(1, id);
+            ps.setInt(1, paymentCard.getId());
+            ps.setString(2, paymentCard.getCardCode());
+            ps.setString(3, paymentCard.getCardNickName());
+            ps.setString(4, paymentCard.getCardNumber());
+            ps.setString(5, paymentCard.getExpirationDate());
+            ps.setString(6, paymentCard.getOwnerName());
+
             ps.executeUpdate();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -71,22 +89,41 @@ public class DatabaseController {
         return result;
     }
 
-    public void deleteById(String entity, int id) {
-        query = "DELETE FROM ? WHERE id=?;";
+    public void deleteUserById(int id) {
+        deleteById("DELETE FROM user WHERE id=?;", id);
+    }
 
+    public void deleteAddressById(int id) {
+        deleteById("DELETE FROM address WHERE id=?;", id);
+    }
+
+    public void deletePaymentCardById(int id) {
+        deleteById("DELETE FROM paymentcard WHERE id=?;", id);
+    }
+
+    private void deleteById(String query, int id) {
         try (Connection con = DriverManager.getConnection(dbURL, dbUsername, dbPassword);
              PreparedStatement ps = con.prepareStatement(query)) {
-            ps.setString(1, entity);
-            ps.setInt(2, id);
+            ps.setInt(1, id);
             ps.executeUpdate();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
 
-    public boolean exists(String entity, int id) {
-        query = "SELECT COUNT(1) FROM %s WHERE id=?;";
-        query = String.format(query, entity);
+    public boolean existsUser(int id) {
+        return exists("SELECT COUNT(1) FROM user WHERE id=?;", id);
+    }
+
+    public boolean existsAddress(int id) {
+        return exists("SELECT COUNT(1) FROM address WHERE id=?;", id);
+    }
+
+    public boolean existsPaymentCard(int id) {
+        return exists("SELECT COUNT(1) FROM paymentcard WHERE id=?;", id);
+    }
+
+    private boolean exists(String query, int id) {
         boolean result = false;
 
         try (Connection con = DriverManager.getConnection(dbURL, dbUsername, dbPassword);
