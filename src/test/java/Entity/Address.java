@@ -1,3 +1,5 @@
+package Entity;
+
 import com.github.javafaker.Faker;
 import lombok.AllArgsConstructor;
 import lombok.Data;

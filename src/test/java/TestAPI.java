@@ -1,10 +1,11 @@
+import Entity.Address;
+import Entity.PaymentCard;
+import Entity.User;
 import org.json.simple.JSONObject;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static io.restassured.RestAssured.*;
@@ -18,6 +19,9 @@ public class TestAPI {
     private String PAYMENT_CARD_ENDPOINT;
 
     private DatabaseController db;
+    private final ArrayList<Integer> usersToCleanUp = new ArrayList<>();
+    private final ArrayList<Integer> addressesToCleanUp = new ArrayList<>();
+    private final ArrayList<Integer> paymentCardsToCleanUp = new ArrayList<>();
 
     public int generateID() {
         return ThreadLocalRandom.current().nextInt(999, 10000);
@@ -37,12 +41,30 @@ public class TestAPI {
         db = new DatabaseController(dbURL, dbUsername, dbPassword);
     }
 
+    @AfterAll
+    public void cleanUpDB() {
+        for (int id : usersToCleanUp) {
+            db.deleteUserById(id);
+            System.out.println("deleted user: " + id);
+        }
+        for (int id : paymentCardsToCleanUp) {
+            db.deletePaymentCardById(id);
+            System.out.println("deleted payment card: " + id);
+        }
+        for (int id : addressesToCleanUp) {
+            db.deleteAddressById(id);
+            System.out.println("deleted address: " + id);
+        }
+    }
+
     @Test
     public void validateAddressExistence() {
         String addressNicknameField = "addressNickname";
         Address address = Address.generateRandomAddress();
 
         db.addNewAddress(address);
+        System.out.println("created address: " + address.getId());
+        addressesToCleanUp.add(address.getId());
 
         given().param("id", address.getId()).
                 when().get(baseURI + ADDRESS_ENDPOINT).
@@ -50,7 +72,7 @@ public class TestAPI {
 
         Assertions.assertTrue(db.existsAddress(address.getId()));
 
-        db.deleteAddressById(address.getId());
+        //db.deleteAddressById(address.getId());
     }
 
     @Test
@@ -59,6 +81,8 @@ public class TestAPI {
         User user = User.generateRandomUser();
 
         db.addNewUser(user);
+        System.out.println("created user: " + user.getId());
+        usersToCleanUp.add(user.getId());
 
         given().param("id", user.getId()).
                 when().get(baseURI + USER_ENDPOINT).
@@ -66,14 +90,15 @@ public class TestAPI {
 
         Assertions.assertTrue(db.existsUser(user.getId()));
 
-        db.deleteUserById(user.getId());
+        //db.deleteUserById(user.getId());
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void validateAddingUser() {
         User user = User.generateRandomUser();
-
         JSONObject request = new JSONObject();
+
         request.put("addressIds", null);
         request.put("email", user.getEmail());
         request.put("firstName", user.getFirstName());
@@ -91,7 +116,9 @@ public class TestAPI {
 
         Assertions.assertTrue(db.existsUser(db.selectUserIdByLogin(user.getLoginName())));
 
-        db.deleteUserById(db.selectUserIdByLogin(user.getLoginName()));
+        System.out.println("created user: " + db.selectUserIdByLogin(user.getLoginName()));
+        usersToCleanUp.add(db.selectUserIdByLogin(user.getLoginName()));
+        //db.deleteUserById(db.selectUserIdByLogin(user.getLoginName()));
     }
 
     @Test
@@ -99,6 +126,8 @@ public class TestAPI {
         User user = User.generateRandomUser();
 
         db.addNewUser(user);
+        System.out.println("created user: " + user.getId());
+        usersToCleanUp.add(user.getId());
 
         given().param("id", user.getId()).
                 when().delete(baseURI + USER_ENDPOINT).
@@ -119,12 +148,15 @@ public class TestAPI {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void validateUpdatingPaymentCard() {
         String expirationDateField = "expirationDate";
         PaymentCard paymentCard = PaymentCard.generateRandomPaymentCard();
         String newExpirationDate = PaymentCard.generateExpirationDate();
 
         db.addNewPaymentCard(paymentCard);
+        System.out.println("created payment card: " + paymentCard.getId());
+        paymentCardsToCleanUp.add(paymentCard.getId());
 
         JSONObject request = new JSONObject();
         request.put("cardCode", paymentCard.getCardCode());
@@ -139,7 +171,7 @@ public class TestAPI {
                 when().put(baseURI + PAYMENT_CARD_ENDPOINT).
                 then().statusCode(200).and().body(expirationDateField, equalTo(newExpirationDate));
 
-        db.deletePaymentCardById(paymentCard.getId());
+        //db.deletePaymentCardById(paymentCard.getId());
     }
 
     @Test

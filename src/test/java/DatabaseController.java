@@ -1,3 +1,7 @@
+import Entity.Address;
+import Entity.PaymentCard;
+import Entity.User;
+
 import java.sql.*;
 
 public class DatabaseController {
