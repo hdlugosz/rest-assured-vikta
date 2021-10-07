@@ -1,5 +1,9 @@
 import com.github.javafaker.Faker;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
+@Data
+@AllArgsConstructor
 public class PaymentCard {
     private String cardCode;
     private String cardNickName;
@@ -9,20 +13,9 @@ public class PaymentCard {
     private String ownerName;
     private int userId;
 
-    public PaymentCard(String cardCode, String cardNickName, String cardNumber, String expirationDate, int id,
-                       String ownerName, Integer userId) {
-        this.cardCode = cardCode;
-        this.cardNickName = cardNickName;
-        this.cardNumber = cardNumber;
-        this.expirationDate = expirationDate;
-        this.id = id;
-        this.ownerName = ownerName;
-        this.userId = userId;
-    }
-
     public static void main(String[] args) {
         PaymentCard paymentCard = generateRandomPaymentCard();
-        System.out.println(paymentCard.toString());
+        System.out.println(paymentCard);
     }
 
     public static PaymentCard generateRandomPaymentCard() {
@@ -40,46 +33,5 @@ public class PaymentCard {
     public static String generateExpirationDate() {
         Faker faker = new Faker();
         return faker.business().creditCardExpiry();
-    }
-
-    public String getCardCode() {
-        return cardCode;
-    }
-
-    public String getCardNickName() {
-        return cardNickName;
-    }
-
-    public String getCardNumber() {
-        return cardNumber;
-    }
-
-    public String getExpirationDate() {
-        return expirationDate;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public String getOwnerName() {
-        return ownerName;
-    }
-
-    public int getUserId() {
-        return userId;
-    }
-
-    @Override
-    public String toString() {
-        return "PaymentCard{" +
-                "cardCode='" + cardCode + '\'' +
-                ", cardNickName='" + cardNickName + '\'' +
-                ", cardNumber='" + cardNumber + '\'' +
-                ", expirationDate='" + expirationDate + '\'' +
-                ", id=" + id +
-                ", ownerName='" + ownerName + '\'' +
-                ", userId=" + userId +
-                '}';
     }
 }
