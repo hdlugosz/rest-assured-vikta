@@ -1,44 +1,34 @@
 import Entity.Address;
 import Entity.PaymentCard;
 import Entity.User;
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.equalTo;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TestAPI {
-    private String baseURI;
-    private String ADDRESS_ENDPOINT;
-    private String USER_ENDPOINT;
-    private String PAYMENT_CARD_ENDPOINT;
+    private final ConfigLoader properties = ConfigLoader.getInstance();
+    private final String baseURI = properties.getPropertyValue("baseURI");
+    private final String ADDRESS_ENDPOINT = properties.getPropertyValue("ADDRESS_ENDPOINT");
+    private final String USER_ENDPOINT = properties.getPropertyValue("USER_ENDPOINT");
+    private final String PAYMENT_CARD_ENDPOINT = properties.getPropertyValue("PAYMENT_CARD_ENDPOINT");
 
-    private DatabaseController db;
+    private final DatabaseController db = new DatabaseController(
+            properties.getPropertyValue("dbURL"),
+            properties.getPropertyValue("dbUsername"),
+            properties.getPropertyValue("dbPassword")
+    );
+
     private final ArrayList<Integer> usersToCleanUp = new ArrayList<>();
     private final ArrayList<Integer> addressesToCleanUp = new ArrayList<>();
     private final ArrayList<Integer> paymentCardsToCleanUp = new ArrayList<>();
 
     public int generateID() {
-        return ThreadLocalRandom.current().nextInt(999, 10000);
-    }
-
-    @BeforeAll
-    public void initialize() throws IOException {
-        ConfigLoader properties = new ConfigLoader();
-        baseURI = properties.getPropertyValue("baseURI");
-        ADDRESS_ENDPOINT = properties.getPropertyValue("ADDRESS_ENDPOINT");
-        USER_ENDPOINT = properties.getPropertyValue("USER_ENDPOINT");
-        PAYMENT_CARD_ENDPOINT = properties.getPropertyValue("PAYMENT_CARD_ENDPOINT");
-        String dbURL = properties.getPropertyValue("dbURL");
-        String dbUsername = properties.getPropertyValue("dbUsername");
-        String dbPassword = properties.getPropertyValue("dbPassword");
-
-        db = new DatabaseController(dbURL, dbUsername, dbPassword);
+        return (int) ((Math.random() * (9999 - 1000)) + 1000);
     }
 
     @AfterAll
@@ -94,23 +84,22 @@ public class TestAPI {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void validateAddingUser() {
         User user = User.generateRandomUser();
         JSONObject request = new JSONObject();
 
-        request.put("addressIds", null);
+        request.put("addressIds", JSONObject.NULL);
         request.put("email", user.getEmail());
         request.put("firstName", user.getFirstName());
-        request.put("id", null);
+        request.put("id", JSONObject.NULL);
         request.put("loginName", user.getLoginName());
         request.put("middleName", user.getMiddleName());
         request.put("password", user.getPassword());
         request.put("pathToAvatarImage", user.getPathToAvatarImage());
-        request.put("paymentCardIds", null);
+        request.put("paymentCardIds", JSONObject.NULL);
         request.put("surname", user.getSurname());
 
-        given().header("Content-Type", "application/json").body(request.toJSONString()).
+        given().header("Content-Type", "application/json").body(request.toString()).
                 when().post(baseURI + USER_ENDPOINT).
                 then().statusCode(201);
 
@@ -148,7 +137,6 @@ public class TestAPI {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void validateUpdatingPaymentCard() {
         String expirationDateField = "expirationDate";
         PaymentCard paymentCard = PaymentCard.generateRandomPaymentCard();
@@ -165,9 +153,9 @@ public class TestAPI {
         request.put("expirationDate", newExpirationDate);
         request.put("id", paymentCard.getId());
         request.put("ownerName", paymentCard.getOwnerName());
-        request.put("userId", null);
+        request.put("userId", JSONObject.NULL);
 
-        given().header("Content-Type", "application/json").body(request.toJSONString()).
+        given().header("Content-Type", "application/json").body(request.toString()).
                 when().put(baseURI + PAYMENT_CARD_ENDPOINT).
                 then().statusCode(200).and().body(expirationDateField, equalTo(newExpirationDate));
 
