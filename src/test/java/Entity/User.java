@@ -1,5 +1,7 @@
 package Entity;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,5 +37,10 @@ public class User {
                 faker.internet().image(),
                 new int[]{0},
                 faker.name().lastName());
+    }
+
+    public String toJsonString() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsString(this);
     }
 }

@@ -1,5 +1,7 @@
 package Entity;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,11 +31,16 @@ public class PaymentCard {
                 faker.business().creditCardExpiry(),
                 Integer.parseInt(faker.code().gtin8().substring(0, 4)),
                 faker.name().fullName(),
-                Integer.parseInt(faker.code().gtin8().substring(0, 3)));
+                0);
     }
 
     public static String generateExpirationDate() {
         Faker faker = new Faker();
         return faker.business().creditCardExpiry();
+    }
+
+    public String toJsonString() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsString(this);
     }
 }

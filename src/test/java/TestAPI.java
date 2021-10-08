@@ -1,7 +1,7 @@
 import Entity.Address;
 import Entity.PaymentCard;
 import Entity.User;
-import org.json.JSONObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.*;
 
 import java.util.ArrayList;
@@ -61,8 +61,6 @@ public class TestAPI {
                 then().statusCode(200).and().body(addressNicknameField, equalTo(address.getAddressNickname()));
 
         Assertions.assertTrue(db.existsAddress(address.getId()));
-
-        //db.deleteAddressById(address.getId());
     }
 
     @Test
@@ -79,27 +77,13 @@ public class TestAPI {
                 then().statusCode(200).and().body(emailField, equalTo(user.getEmail()));
 
         Assertions.assertTrue(db.existsUser(user.getId()));
-
-        //db.deleteUserById(user.getId());
     }
 
     @Test
-    public void validateAddingUser() {
+    public void validateAddingUser() throws JsonProcessingException {
         User user = User.generateRandomUser();
-        JSONObject request = new JSONObject();
 
-        request.put("addressIds", JSONObject.NULL);
-        request.put("email", user.getEmail());
-        request.put("firstName", user.getFirstName());
-        request.put("id", JSONObject.NULL);
-        request.put("loginName", user.getLoginName());
-        request.put("middleName", user.getMiddleName());
-        request.put("password", user.getPassword());
-        request.put("pathToAvatarImage", user.getPathToAvatarImage());
-        request.put("paymentCardIds", JSONObject.NULL);
-        request.put("surname", user.getSurname());
-
-        given().header("Content-Type", "application/json").body(request.toString()).
+        given().header("Content-Type", "application/json").body(user.toJsonString()).
                 when().post(baseURI + USER_ENDPOINT).
                 then().statusCode(201);
 
@@ -107,7 +91,6 @@ public class TestAPI {
 
         System.out.println("created user: " + db.selectUserIdByLogin(user.getLoginName()));
         usersToCleanUp.add(db.selectUserIdByLogin(user.getLoginName()));
-        //db.deleteUserById(db.selectUserIdByLogin(user.getLoginName()));
     }
 
     @Test
@@ -137,7 +120,7 @@ public class TestAPI {
     }
 
     @Test
-    public void validateUpdatingPaymentCard() {
+    public void validateUpdatingPaymentCard() throws JsonProcessingException {
         String expirationDateField = "expirationDate";
         PaymentCard paymentCard = PaymentCard.generateRandomPaymentCard();
         String newExpirationDate = PaymentCard.generateExpirationDate();
@@ -146,20 +129,11 @@ public class TestAPI {
         System.out.println("created payment card: " + paymentCard.getId());
         paymentCardsToCleanUp.add(paymentCard.getId());
 
-        JSONObject request = new JSONObject();
-        request.put("cardCode", paymentCard.getCardCode());
-        request.put("cardNickName", paymentCard.getCardNickName());
-        request.put("cardNumber", paymentCard.getCardNumber());
-        request.put("expirationDate", newExpirationDate);
-        request.put("id", paymentCard.getId());
-        request.put("ownerName", paymentCard.getOwnerName());
-        request.put("userId", JSONObject.NULL);
+        paymentCard.setExpirationDate(newExpirationDate);
 
-        given().header("Content-Type", "application/json").body(request.toString()).
+        given().header("Content-Type", "application/json").body(paymentCard.toJsonString()).
                 when().put(baseURI + PAYMENT_CARD_ENDPOINT).
                 then().statusCode(200).and().body(expirationDateField, equalTo(newExpirationDate));
-
-        //db.deletePaymentCardById(paymentCard.getId());
     }
 
     @Test
