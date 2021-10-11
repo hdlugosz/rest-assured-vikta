@@ -2,10 +2,11 @@ package Entity;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.javafaker.Faker;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
+@Builder
 @Data
 @AllArgsConstructor
 public class User {
@@ -20,23 +21,25 @@ public class User {
     private int[] paymentCardIds;
     private String surname;
 
-    public static void main(String[] args) {
-        User user = generateRandomUser();
-        System.out.println(user);
-    }
+    public static class UserBuilder {
+        public UserBuilder withTestValues() {
+            this.addressIds = new int[]{0};
+            this.email = "testEmail@mail.com";
+            this.firstName = "testFirstName";
+            this.id = 9999;
+            this.loginName = "testLogin";
+            this.middleName = "testMiddleName";
+            this.password = "testPassword";
+            this.pathToAvatarImage = "path.com";
+            this.paymentCardIds = new int[]{0};
+            this.surname = "testSurname";
+            return this;
+        }
 
-    public static User generateRandomUser() {
-        Faker faker = new Faker();
-        return new User(new int[]{0},
-                faker.internet().emailAddress(),
-                faker.name().firstName(),
-                Integer.parseInt(faker.code().gtin8().substring(0, 4)),
-                faker.name().username(),
-                faker.name().firstName(),
-                faker.internet().password(),
-                faker.internet().image(),
-                new int[]{0},
-                faker.name().lastName());
+        public UserBuilder randomId() {
+            this.id = (int) ((Math.random() * (9999 - 1000)) + 1000);
+            return this;
+        }
     }
 
     public String toJsonString() throws JsonProcessingException {

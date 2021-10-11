@@ -1,9 +1,10 @@
 package Entity;
 
-import com.github.javafaker.Faker;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
+@Builder
 @Data
 @AllArgsConstructor
 public class Address {
@@ -16,20 +17,22 @@ public class Address {
     private String streetAdditional;
     private int userId;
 
-    public static void main(String[] args) {
-        System.out.println(generateRandomAddress());
-    }
+    public static class AddressBuilder {
+        public Address.AddressBuilder withTestValues() {
+            this.addressNickname = "testAddressNickname";
+            this.cityName = "testCityName";
+            this.id = 8888;
+            this.postalCode = "20200";
+            this.regionName = "testRegionName";
+            this.street = "testStreet";
+            this.streetAdditional = "testStreetAdditional";
+            this.userId = 555;
+            return this;
+        }
 
-    public static Address generateRandomAddress() {
-        Faker faker = new Faker();
-        return new Address(
-                faker.pokemon().name(),
-                faker.address().cityName(),
-                Integer.parseInt(faker.code().gtin8().substring(0, 4)),
-                faker.address().zipCode(),
-                faker.address().state(),
-                faker.address().streetAddress(),
-                faker.address().latitude().concat(" " + faker.address().longitude()),
-                Integer.parseInt(faker.code().gtin8().substring(0, 3)));
+        public Address.AddressBuilder randomId() {
+            this.id = (int) ((Math.random() * (9999 - 1000)) + 1000);
+            return this;
+        }
     }
 }

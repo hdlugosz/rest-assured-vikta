@@ -1,10 +1,14 @@
 import Entity.Address;
 import Entity.PaymentCard;
 import Entity.User;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
 
 public class DatabaseController {
+    private static final Logger logger = LogManager.getLogger(DatabaseController.class);
+
     private final String dbURL;
     private final String dbUsername;
     private final String dbPassword;
@@ -31,7 +35,10 @@ public class DatabaseController {
             ps.setString(6, user.getPassword());
             ps.setString(7, user.getPathToAvatarImage());
             ps.setString(8, user.getSurname());
+
             ps.executeUpdate();
+
+            logger.debug("created user: " + user.getId());
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -51,7 +58,10 @@ public class DatabaseController {
             ps.setString(5, address.getRegionName());
             ps.setString(6, address.getStreet());
             ps.setString(7, address.getStreetAdditional());
+
             ps.executeUpdate();
+
+            logger.debug("created address: " + address.getId());
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -72,6 +82,8 @@ public class DatabaseController {
             ps.setString(6, paymentCard.getOwnerName());
 
             ps.executeUpdate();
+
+            logger.debug("created payment card: " + paymentCard.getId());
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -94,22 +106,24 @@ public class DatabaseController {
     }
 
     public void deleteUserById(int id) {
-        deleteById("DELETE FROM user WHERE id=?;", id);
+        deleteById("DELETE FROM user WHERE id=?;", "user", id);
     }
 
     public void deleteAddressById(int id) {
-        deleteById("DELETE FROM address WHERE id=?;", id);
+        deleteById("DELETE FROM address WHERE id=?;", "address", id);
     }
 
     public void deletePaymentCardById(int id) {
-        deleteById("DELETE FROM paymentcard WHERE id=?;", id);
+        deleteById("DELETE FROM paymentcard WHERE id=?;", "payment card", id);
     }
 
-    private void deleteById(String query, int id) {
+    private void deleteById(String query, String entity, int id) {
         try (Connection con = DriverManager.getConnection(dbURL, dbUsername, dbPassword);
              PreparedStatement ps = con.prepareStatement(query)) {
             ps.setInt(1, id);
             ps.executeUpdate();
+
+            logger.debug("deleted " + entity + ": " + id);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }

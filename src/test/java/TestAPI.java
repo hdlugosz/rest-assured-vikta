@@ -6,11 +6,15 @@ import org.junit.jupiter.api.*;
 
 import java.util.ArrayList;
 
+import org.apache.logging.log4j.*;
+
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.equalTo;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TestAPI {
+    private static final Logger logger = LogManager.getLogger(TestAPI.class);
+
     private final ConfigLoader properties = ConfigLoader.getInstance();
     private final String baseURI = properties.getPropertyValue("baseURI");
     private final String ADDRESS_ENDPOINT = properties.getPropertyValue("ADDRESS_ENDPOINT");
@@ -35,25 +39,21 @@ public class TestAPI {
     public void cleanUpDB() {
         for (int id : usersToCleanUp) {
             db.deleteUserById(id);
-            System.out.println("deleted user: " + id);
         }
         for (int id : paymentCardsToCleanUp) {
             db.deletePaymentCardById(id);
-            System.out.println("deleted payment card: " + id);
         }
         for (int id : addressesToCleanUp) {
             db.deleteAddressById(id);
-            System.out.println("deleted address: " + id);
         }
     }
 
     @Test
     public void validateAddressExistence() {
         String addressNicknameField = "addressNickname";
-        Address address = Address.generateRandomAddress();
+        Address address = Address.builder().withTestValues().randomId().build();
 
         db.addNewAddress(address);
-        System.out.println("created address: " + address.getId());
         addressesToCleanUp.add(address.getId());
 
         given().param("id", address.getId()).
@@ -66,10 +66,9 @@ public class TestAPI {
     @Test
     public void validateUserExistence() {
         String emailField = "email";
-        User user = User.generateRandomUser();
+        User user = User.builder().withTestValues().randomId().build();
 
         db.addNewUser(user);
-        System.out.println("created user: " + user.getId());
         usersToCleanUp.add(user.getId());
 
         given().param("id", user.getId()).
@@ -81,7 +80,7 @@ public class TestAPI {
 
     @Test
     public void validateAddingUser() throws JsonProcessingException {
-        User user = User.generateRandomUser();
+        User user = User.builder().withTestValues().build();
 
         given().header("Content-Type", "application/json").body(user.toJsonString()).
                 when().post(baseURI + USER_ENDPOINT).
@@ -89,16 +88,15 @@ public class TestAPI {
 
         Assertions.assertTrue(db.existsUser(db.selectUserIdByLogin(user.getLoginName())));
 
-        System.out.println("created user: " + db.selectUserIdByLogin(user.getLoginName()));
+        logger.debug("created user: " + db.selectUserIdByLogin(user.getLoginName()));
         usersToCleanUp.add(db.selectUserIdByLogin(user.getLoginName()));
     }
 
     @Test
     public void validateDeletingUser() {
-        User user = User.generateRandomUser();
+        User user = User.builder().withTestValues().randomId().build();
 
         db.addNewUser(user);
-        System.out.println("created user: " + user.getId());
         usersToCleanUp.add(user.getId());
 
         given().param("id", user.getId()).
@@ -122,11 +120,10 @@ public class TestAPI {
     @Test
     public void validateUpdatingPaymentCard() throws JsonProcessingException {
         String expirationDateField = "expirationDate";
-        PaymentCard paymentCard = PaymentCard.generateRandomPaymentCard();
-        String newExpirationDate = PaymentCard.generateExpirationDate();
+        String newExpirationDate = "2023-10-31";
+        PaymentCard paymentCard = PaymentCard.builder().withTestValues().randomId().build();
 
         db.addNewPaymentCard(paymentCard);
-        System.out.println("created payment card: " + paymentCard.getId());
         paymentCardsToCleanUp.add(paymentCard.getId());
 
         paymentCard.setExpirationDate(newExpirationDate);
@@ -146,4 +143,5 @@ public class TestAPI {
 
         Assertions.assertFalse(db.existsPaymentCard(id));
     }
+
 }

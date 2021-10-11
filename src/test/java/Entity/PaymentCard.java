@@ -2,10 +2,11 @@ package Entity;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.javafaker.Faker;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
+@Builder
 @Data
 @AllArgsConstructor
 public class PaymentCard {
@@ -17,26 +18,22 @@ public class PaymentCard {
     private String ownerName;
     private int userId;
 
-    public static void main(String[] args) {
-        PaymentCard paymentCard = generateRandomPaymentCard();
-        System.out.println(paymentCard);
-    }
+    public static class PaymentCardBuilder {
+        public PaymentCard.PaymentCardBuilder withTestValues() {
+            this.cardCode = "375";
+            this.cardNickName = "testCardNickname";
+            this.cardNumber = "testCardNumber";
+            this.expirationDate = "2021-12-20";
+            this.id = 7777;
+            this.ownerName = "testOwnerName";
+            this.userId = 0;
+            return this;
+        }
 
-    public static PaymentCard generateRandomPaymentCard() {
-        Faker faker = new Faker();
-        return new PaymentCard(
-                faker.code().gtin8().substring(0, 3),
-                faker.name().username(),
-                faker.code().imei().concat("1"),
-                faker.business().creditCardExpiry(),
-                Integer.parseInt(faker.code().gtin8().substring(0, 4)),
-                faker.name().fullName(),
-                0);
-    }
-
-    public static String generateExpirationDate() {
-        Faker faker = new Faker();
-        return faker.business().creditCardExpiry();
+        public PaymentCard.PaymentCardBuilder randomId() {
+            this.id = (int) ((Math.random() * (9999 - 1000)) + 1000);
+            return this;
+        }
     }
 
     public String toJsonString() throws JsonProcessingException {
