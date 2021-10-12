@@ -1,6 +1,8 @@
-import Entity.Address;
-import Entity.PaymentCard;
-import Entity.User;
+package test;
+
+import entity.Address;
+import entity.PaymentCard;
+import entity.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
@@ -10,18 +12,15 @@ import java.util.ArrayList;
 
 import org.apache.logging.log4j.*;
 
+import static entityAPI.AddressAPI.*;
+import static entityAPI.PaymentCardAPI.*;
+import static entityAPI.UserAPI.*;
 import static io.restassured.RestAssured.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TestAPI {
     private static final Logger logger = LogManager.getLogger(TestAPI.class);
-
     private final ConfigLoader properties = ConfigLoader.getInstance();
-    private final String baseURI = properties.getPropertyValue("baseURI");
-    private final String ADDRESS_ENDPOINT = properties.getPropertyValue("ADDRESS_ENDPOINT");
-    private final String USER_ENDPOINT = properties.getPropertyValue("USER_ENDPOINT");
-    private final String USER_SURNAME_ENDPOINT = properties.getPropertyValue("USER_SURNAME_ENDPOINT");
-    private final String PAYMENT_CARD_ENDPOINT = properties.getPropertyValue("PAYMENT_CARD_ENDPOINT");
 
     private final DatabaseController db = new DatabaseController(
             properties.getPropertyValue("dbURL"),
@@ -60,13 +59,7 @@ public class TestAPI {
         RequestSpecification request = given()
                 .param("id", address.getId());
 
-        Response response = given()
-                .spec(request)
-                .when()
-                .get(baseURI + ADDRESS_ENDPOINT)
-                .then()
-                .extract()
-                .response();
+        Response response = getAddress(request);
 
         Assertions.assertEquals(address.getAddressNickname(), response.jsonPath().getString(addressNicknameField));
         Assertions.assertEquals(200, response.statusCode());
@@ -83,13 +76,7 @@ public class TestAPI {
         RequestSpecification request = given()
                 .param("id", user.getId());
 
-        Response response = given()
-                .spec(request)
-                .when()
-                .get(baseURI + USER_ENDPOINT)
-                .then()
-                .extract()
-                .response();
+        Response response = getUser(request);
 
         Assertions.assertEquals(user.getEmail(), response.jsonPath().get(emailField));
         Assertions.assertEquals(200, response.statusCode());
@@ -104,10 +91,7 @@ public class TestAPI {
                 .header("Content-Type", "application/json")
                 .body(user.toJsonString());
 
-        Response response = given()
-                .spec(request)
-                .when()
-                .post(baseURI + USER_ENDPOINT);
+        Response response = postUser(request);
 
         Assertions.assertEquals(201, response.statusCode());
         Assertions.assertTrue(db.existsUser(db.selectUserIdByLogin(user.getLoginName())));
@@ -124,10 +108,7 @@ public class TestAPI {
         RequestSpecification request = given()
                 .param("id", user.getId());
 
-        Response response = given()
-                .spec(request)
-                .when()
-                .delete(baseURI + USER_ENDPOINT);
+        Response response = deleteUser(request);
 
         Assertions.assertEquals(200, response.statusCode());
         Assertions.assertFalse(db.existsUser(user.getId()));
@@ -140,10 +121,7 @@ public class TestAPI {
         RequestSpecification request = given()
                 .param("id", id);
 
-        Response response = given()
-                .spec(request)
-                .when()
-                .delete(baseURI + USER_ENDPOINT);
+        Response response = deleteUser(request);
 
         Assertions.assertEquals(404, response.statusCode());
         Assertions.assertFalse(db.existsUser(id));
@@ -162,13 +140,7 @@ public class TestAPI {
                 .header("Content-Type", "application/json")
                 .body(paymentCard.toJsonString());
 
-        Response response = given()
-                .spec(request)
-                .when()
-                .put(baseURI + PAYMENT_CARD_ENDPOINT)
-                .then()
-                .extract()
-                .response();
+        Response response = putPaymentCard(request);
 
         Assertions.assertEquals(newExpirationDate, response.jsonPath().getString(expirationDateField));
         Assertions.assertEquals(200, response.statusCode());
@@ -180,10 +152,7 @@ public class TestAPI {
 
         RequestSpecification request = given().param("id", id);
 
-        Response response = given()
-                .spec(request)
-                .when()
-                .delete(baseURI + PAYMENT_CARD_ENDPOINT);
+        Response response = getPaymentCard(request);
 
         Assertions.assertEquals(404, response.statusCode());
         Assertions.assertFalse(db.existsPaymentCard(id));
@@ -198,10 +167,7 @@ public class TestAPI {
         RequestSpecification request = given()
                 .param("surname", user.getSurname());
 
-        Response response = given()
-                .spec(request)
-                .when()
-                .get(baseURI + USER_SURNAME_ENDPOINT);
+        Response response = getUserListUsingSurname(request);
 
         Assertions.assertTrue(response.body().asString().contains(user.getSurname()));
         Assertions.assertEquals(200, response.statusCode());
@@ -210,13 +176,11 @@ public class TestAPI {
     @Test
     public void validateFindingUserBySurnameThatDoesntExist() {
         String invalidSurname = "xyz";
+
         RequestSpecification request = given()
                 .param("surname", invalidSurname);
 
-        Response response = given()
-                .spec(request)
-                .when()
-                .get(baseURI + USER_SURNAME_ENDPOINT);
+        Response response = getUserListUsingSurname(request);
 
         Assertions.assertFalse(response.body().asString().contains(invalidSurname));
         Assertions.assertEquals(200, response.statusCode());
