@@ -40,7 +40,7 @@ public class DatabaseController {
 
             logger.debug("created user: " + user.getId());
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            logger.error(throwables.getMessage(), throwables);
         }
     }
 
@@ -63,7 +63,7 @@ public class DatabaseController {
 
             logger.debug("created address: " + address.getId());
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            logger.error(throwables.getMessage(), throwables);
         }
     }
 
@@ -85,7 +85,7 @@ public class DatabaseController {
 
             logger.debug("created payment card: " + paymentCard.getId());
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            logger.error(throwables.getMessage(), throwables);
         }
     }
 
@@ -100,7 +100,7 @@ public class DatabaseController {
             rs.next();
             result = rs.getInt("id");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            logger.error(throwables.getMessage(), throwables);
         }
         return result;
     }
@@ -125,7 +125,7 @@ public class DatabaseController {
 
             logger.debug("deleted " + entity + ": " + id);
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            logger.error(throwables.getMessage(), throwables);
         }
     }
 
@@ -152,7 +152,7 @@ public class DatabaseController {
             if (rs.getInt(1) == 1)
                 result = true;
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            logger.error(throwables.getMessage(), throwables);
         }
         return result;
     }
