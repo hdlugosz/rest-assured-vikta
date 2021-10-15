@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import static test.Utils.generateRandomFourDigitNumber;
+
 @Builder
 @Data
 @AllArgsConstructor
@@ -20,20 +22,19 @@ public class PaymentCard {
     }
 
     public static class PaymentCardBuilder {
-        public PaymentCard.PaymentCardBuilder withTestValues() {
-            this.cardCode = "375";
-            this.cardNickName = "testCardNickname";
-            this.cardNumber = "testCardNumber";
-            this.expirationDate = "2021-12-20";
-            this.id = 7777;
-            this.ownerName = "testOwnerName";
-            this.userId = 0;
+        public PaymentCardBuilder withTestValues() {
+            this.cardCode("375")
+                    .cardNickName("testCardNickname")
+                    .cardNumber("testCardNumber")
+                    .expirationDate("2021-12-20")
+                    .id(7777)
+                    .ownerName("testOwnerName")
+                    .userId(0);
             return this;
         }
 
-        public PaymentCard.PaymentCardBuilder randomId() {
-            this.id = (int) ((Math.random() * (9999 - 1000)) + 1000);
-            return this;
+        public PaymentCardBuilder randomId() {
+            return this.id(generateRandomFourDigitNumber());
         }
     }
 }

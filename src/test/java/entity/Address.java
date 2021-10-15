@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import static test.Utils.generateRandomFourDigitNumber;
+
 @Builder
 @Data
 @AllArgsConstructor
@@ -21,20 +23,20 @@ public class Address {
     }
 
     public static class AddressBuilder {
-        public Address.AddressBuilder withTestValues() {
-            this.addressNickname = "testAddressNickname";
-            this.cityName = "testCityName";
-            this.id = 8888;
-            this.postalCode = "20200";
-            this.regionName = "testRegionName";
-            this.street = "testStreet";
-            this.streetAdditional = "testStreetAdditional";
-            this.userId = 555;
+        public AddressBuilder withTestValues() {
+            this.addressNickname("testAddressNickname")
+                    .cityName("testCityName")
+                    .id(8888)
+                    .postalCode("20200")
+                    .regionName("testRegionName")
+                    .street("testStreet")
+                    .streetAdditional("testStreetAdditional")
+                    .userId(555);
             return this;
         }
 
-        public Address.AddressBuilder randomId() {
-            this.id = (int) ((Math.random() * (9999 - 1000)) + 1000);
+        public AddressBuilder randomId() {
+            this.id(generateRandomFourDigitNumber());
             return this;
         }
     }

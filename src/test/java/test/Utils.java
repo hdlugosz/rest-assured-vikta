@@ -7,7 +7,7 @@ public final class Utils {
     private Utils() {
     }
 
-    public static int generateID() {
+    public static int generateRandomFourDigitNumber() {
         return (int) ((Math.random() * (MAX_ID - MIN_ID)) + MIN_ID);
     }
 }

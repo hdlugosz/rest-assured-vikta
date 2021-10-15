@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import static test.Utils.generateRandomFourDigitNumber;
+
 @Builder
 @Data
 @AllArgsConstructor
@@ -24,22 +26,21 @@ public class User {
 
     public static class UserBuilder {
         public UserBuilder withTestValues() {
-            this.addressIds = new int[]{0};
-            this.email = "testEmail@mail.com";
-            this.firstName = "testFirstName";
-            this.id = 9999;
-            this.loginName = "testLogin";
-            this.middleName = "testMiddleName";
-            this.password = "testPassword";
-            this.pathToAvatarImage = "path.com";
-            this.paymentCardIds = new int[]{0};
-            this.surname = "testSurname";
+            this.addressIds(new int[]{0})
+                    .email("testEmail@mail.com")
+                    .firstName("testFirstName")
+                    .id(9999)
+                    .loginName("testLogin")
+                    .middleName("testMiddleName")
+                    .password("testPassword")
+                    .pathToAvatarImage("path.com")
+                    .paymentCardIds(new int[]{0})
+                    .surname("testSurname");
             return this;
         }
 
         public UserBuilder randomId() {
-            this.id = (int) ((Math.random() * (9999 - 1000)) + 1000);
-            return this;
+            return this.id(generateRandomFourDigitNumber());
         }
     }
 }

@@ -17,7 +17,6 @@ import static entityAPI.PaymentCardAPI.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TestAPI {
     private static final Logger logger = LogManager.getLogger(TestAPI.class);
-
     private final ConfigLoader properties = ConfigLoader.getInstance();
 
     private final DatabaseController db = new DatabaseController(
