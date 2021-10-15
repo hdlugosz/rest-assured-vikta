@@ -1,11 +1,11 @@
-package entityAPI;
+package vikta.endpoints;
 
-import entity.Address;
+import vikta.entities.Address;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import config.ConfigLoader;
+import vikta.utils.ConfigLoader;
 
-public class AddressAPI extends BaseAPI {
+public class AddressEndpoints extends Base {
     private static final ConfigLoader properties = ConfigLoader.getInstance();
     private static final String ADDRESS_ENDPOINT = properties.getPropertyValue("ADDRESS_ENDPOINT");
 

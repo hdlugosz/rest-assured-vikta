@@ -1,8 +1,8 @@
-package test;
+package vikta.test;
 
-import entity.Address;
-import entity.PaymentCard;
-import entity.User;
+import vikta.entities.Address;
+import vikta.entities.PaymentCard;
+import vikta.entities.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

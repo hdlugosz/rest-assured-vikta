@@ -1,10 +1,10 @@
-package entity;
+package vikta.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
-import static util.Utils.generateRandomFourDigitNumber;
+import static vikta.utils.Utils.generateRandomFourDigitNumber;
 
 @Builder
 @Data

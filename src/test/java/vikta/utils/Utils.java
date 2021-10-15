@@ -1,4 +1,4 @@
-package util;
+package vikta.utils;
 
 public final class Utils {
     private final static int MIN_ID = 1000;

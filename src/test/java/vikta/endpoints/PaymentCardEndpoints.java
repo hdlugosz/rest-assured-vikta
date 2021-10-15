@@ -1,11 +1,11 @@
-package entityAPI;
+package vikta.endpoints;
 
-import entity.PaymentCard;
+import vikta.entities.PaymentCard;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import config.ConfigLoader;
+import vikta.utils.ConfigLoader;
 
-public class PaymentCardAPI extends BaseAPI {
+public class PaymentCardEndpoints extends Base {
     private static final ConfigLoader properties = ConfigLoader.getInstance();
     private static final String PAYMENT_CARD_ENDPOINT = properties.getPropertyValue("PAYMENT_CARD_ENDPOINT");
 

@@ -1,23 +1,23 @@
-package test;
+package vikta.test;
 
-import config.ConfigLoader;
+import vikta.utils.ConfigLoader;
 import io.restassured.response.Response;
-import entity.Address;
-import entity.PaymentCard;
-import entity.User;
+import vikta.entities.Address;
+import vikta.entities.PaymentCard;
+import vikta.entities.User;
 import org.junit.jupiter.api.*;
 
 import java.util.ArrayList;
 
 import org.apache.logging.log4j.*;
 
-import static entityAPI.UserAPI.*;
-import static entityAPI.AddressAPI.*;
-import static entityAPI.PaymentCardAPI.*;
+import static vikta.endpoints.UserEndpoints.*;
+import static vikta.endpoints.AddressEndpoints.*;
+import static vikta.endpoints.PaymentCardEndpoints.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TestAPI {
-    private static final Logger logger = LogManager.getLogger(TestAPI.class);
+public class TestEndpoints {
+    private static final Logger logger = LogManager.getLogger(TestEndpoints.class);
     private final ConfigLoader properties = ConfigLoader.getInstance();
 
     private final DatabaseController db = new DatabaseController(

@@ -1,11 +1,11 @@
-package entityAPI;
+package vikta.endpoints;
 
-import entity.User;
+import vikta.entities.User;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import config.ConfigLoader;
+import vikta.utils.ConfigLoader;
 
-public class UserAPI extends BaseAPI {
+public class UserEndpoints extends Base {
     private static final ConfigLoader properties = ConfigLoader.getInstance();
     private static final String USER_ENDPOINT = properties.getPropertyValue("USER_ENDPOINT");
     private static final String USER_SURNAME_ENDPOINT = properties.getPropertyValue("USER_SURNAME_ENDPOINT");
