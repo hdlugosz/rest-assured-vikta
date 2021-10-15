@@ -3,7 +3,7 @@ package entityAPI;
 import entity.PaymentCard;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import test.ConfigLoader;
+import config.ConfigLoader;
 
 public class PaymentCardAPI extends BaseAPI {
     private static final ConfigLoader properties = ConfigLoader.getInstance();

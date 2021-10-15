@@ -1,7 +1,7 @@
 package entityAPI;
 
 import io.restassured.specification.RequestSpecification;
-import test.ConfigLoader;
+import config.ConfigLoader;
 
 import static io.restassured.RestAssured.given;
 

@@ -1,4 +1,4 @@
-package test;
+package util;
 
 public final class Utils {
     private final static int MIN_ID = 1000;

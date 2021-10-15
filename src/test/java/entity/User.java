@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
-import static test.Utils.generateRandomFourDigitNumber;
+import static util.Utils.generateRandomFourDigitNumber;
 
 @Builder
 @Data

@@ -1,5 +1,6 @@
 package test;
 
+import config.ConfigLoader;
 import io.restassured.response.Response;
 import entity.Address;
 import entity.PaymentCard;
