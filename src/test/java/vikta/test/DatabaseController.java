@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
+import java.util.ArrayList;
 
 public class DatabaseController {
     private static final Logger logger = LogManager.getLogger(DatabaseController.class);
@@ -14,6 +15,11 @@ public class DatabaseController {
     private final String dbURL;
     private final String dbUsername;
     private final String dbPassword;
+
+    private int latestUserID;
+    private int latestAddressID;
+    private int latestPaymentCardID;
+
     private String query;
 
     public DatabaseController(String dbURL, String dbUsername, String dbPassword) {
@@ -91,7 +97,7 @@ public class DatabaseController {
         }
     }
 
-    public int selectUserIdByLogin(String login) {
+    public int selectUserIDByLogin(String login) {
         query = "SELECT id FROM user WHERE user.loginname=?";
         int result = -1;
 
@@ -107,19 +113,19 @@ public class DatabaseController {
         return result;
     }
 
-    public void deleteUserById(int id) {
-        deleteById("DELETE FROM user WHERE id=?;", "user", id);
+    public void deleteUserByID(int id) {
+        deleteByID("DELETE FROM user WHERE id=?;", "user", id);
     }
 
-    public void deleteAddressById(int id) {
-        deleteById("DELETE FROM address WHERE id=?;", "address", id);
+    public void deleteAddressByID(int id) {
+        deleteByID("DELETE FROM address WHERE id=?;", "address", id);
     }
 
-    public void deletePaymentCardById(int id) {
-        deleteById("DELETE FROM paymentcard WHERE id=?;", "payment card", id);
+    public void deletePaymentCardByID(int id) {
+        deleteByID("DELETE FROM paymentcard WHERE id=?;", "payment card", id);
     }
 
-    private void deleteById(String query, String entity, int id) {
+    private void deleteByID(String query, String entity, int id) {
         try (Connection con = DriverManager.getConnection(dbURL, dbUsername, dbPassword);
              PreparedStatement ps = con.prepareStatement(query)) {
             ps.setInt(1, id);
@@ -157,5 +163,84 @@ public class DatabaseController {
             logger.error(throwables.getMessage(), throwables);
         }
         return result;
+    }
+
+    public void prepareDatabase() {
+        latestUserID = getLatestUserID();
+        logger.debug("latest user id: " + latestUserID);
+        latestAddressID = getLatestAddressID();
+        logger.debug("latest address id: " + latestAddressID);
+        latestPaymentCardID = getLatestPaymentCardID();
+        logger.debug("latest payment card id: " + latestPaymentCardID);
+    }
+
+    public void cleanUpDatabase() {
+        ArrayList<Integer> userIDs = listUserIDsToBeDeleted(latestUserID);
+        ArrayList<Integer> addressIDs = listAddressIDsToBeDeleted(latestAddressID);
+        ArrayList<Integer> paymentCardIDs = listPaymentCardIDsToBeDeleted(latestPaymentCardID);
+
+        for (int id : userIDs) {
+            deleteUserByID(id);
+        }
+        for (int id : addressIDs) {
+            deleteAddressByID(id);
+        }
+        for (int id : paymentCardIDs) {
+            deletePaymentCardByID(id);
+        }
+    }
+
+    public int getLatestUserID() {
+        return getLatestID("SELECT id FROM user ORDER BY id DESC LIMIT 1;");
+    }
+
+    public int getLatestAddressID() {
+        return getLatestID("SELECT id FROM address ORDER BY id DESC LIMIT 1;");
+    }
+
+    public int getLatestPaymentCardID() {
+        return getLatestID("SELECT id FROM paymentcard ORDER BY id DESC LIMIT 1;");
+    }
+
+    private int getLatestID(String query) {
+        int result = -1;
+
+        try (Connection con = DriverManager.getConnection(dbURL, dbUsername, dbPassword);
+             PreparedStatement ps = con.prepareStatement(query)) {
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            result = rs.getInt("id");
+        } catch (SQLException throwables) {
+            logger.error(throwables.getMessage(), throwables);
+        }
+        return result;
+    }
+
+    public ArrayList<Integer> listUserIDsToBeDeleted(int latestUserID) {
+            return listIDsToBeDeleted("SELECT id FROM user WHERE id > ?;", latestUserID);
+    }
+
+    public ArrayList<Integer> listAddressIDsToBeDeleted(int latestAddressID) {
+            return listIDsToBeDeleted("SELECT id FROM address WHERE id > ?;", latestAddressID);
+    }
+
+    public ArrayList<Integer> listPaymentCardIDsToBeDeleted(int latestPaymentCardID) {
+            return listIDsToBeDeleted("SELECT id FROM paymentcard WHERE id > ?;", latestPaymentCardID);
+    }
+
+    private ArrayList<Integer> listIDsToBeDeleted(String query, int latestID) {
+        ArrayList<Integer> IDs = new ArrayList<>();
+
+        try (Connection con = DriverManager.getConnection(dbURL, dbUsername, dbPassword);
+             PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setInt(1, latestID);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                IDs.add(rs.getInt("id"));
+            }
+        } catch (SQLException throwables) {
+            logger.error(throwables.getMessage(), throwables);
+        }
+        return IDs;
     }
 }

@@ -31,7 +31,7 @@ public class Address {
                     .regionName("testRegionName")
                     .street("testStreet")
                     .streetAdditional("testStreetAdditional")
-                    .userId(555);
+                    .userId(0);
             return this;
         }
 
