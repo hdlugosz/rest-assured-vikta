@@ -1,4 +1,4 @@
-package vikta.test;
+package vikta.database;
 
 import vikta.entities.Address;
 import vikta.entities.PaymentCard;

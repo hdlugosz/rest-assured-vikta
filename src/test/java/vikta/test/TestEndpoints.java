@@ -1,5 +1,6 @@
 package vikta.test;
 
+import vikta.database.DatabaseController;
 import vikta.utils.ConfigLoader;
 import io.restassured.response.Response;
 import vikta.entities.Address;
