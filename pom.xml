@@ -23,13 +23,13 @@
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
             <version>4.4.0</version>
-            <scope>vikta.test</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>RELEASE</version>
-            <scope>vikta.test</scope>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>

@@ -46,7 +46,7 @@ public class User {
         }
     }
 
-    public boolean equalsNotOverriddenFields(Object o) {
+    public boolean equalsExceptIDField(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;

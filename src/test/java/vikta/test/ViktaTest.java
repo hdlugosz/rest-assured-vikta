@@ -15,8 +15,8 @@ import static vikta.endpoints.AddressEndpoints.*;
 import static vikta.endpoints.PaymentCardEndpoints.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TestEndpoints {
-    private static final Logger logger = LogManager.getLogger(TestEndpoints.class);
+public class ViktaTest {
+    private static final Logger logger = LogManager.getLogger(ViktaTest.class);
     private final ConfigLoader properties = ConfigLoader.getInstance();
 
     private final DatabaseController db = new DatabaseController(
@@ -66,7 +66,7 @@ public class TestEndpoints {
         Response response = postUser(user);
 
         User responseUser = response.as(User.class);
-        Assertions.assertTrue(user.equalsNotOverriddenFields(responseUser));
+        Assertions.assertTrue(user.equalsExceptIDField(responseUser));
         Assertions.assertEquals(201, response.statusCode());
         Assertions.assertTrue(db.existsUser(responseUser.getId()));
         logger.debug("created user: " + responseUser.getId());
@@ -150,7 +150,7 @@ public class TestEndpoints {
 
         Response response = postUser(user);
 
-        Assertions.assertEquals(500, response.statusCode());
+        Assertions.assertEquals(422, response.statusCode());
         Assertions.assertEquals(404, getUser(user).statusCode());
     }
 
@@ -160,23 +160,29 @@ public class TestEndpoints {
 
         Response response = postUser(user);
 
-        Assertions.assertEquals(500, response.statusCode());
+        Assertions.assertEquals(422, response.statusCode());
         Assertions.assertEquals(404, getUser(user).statusCode());
     }
 
     @Test
-    public void validateThatCreatingUserWithEmptyLoginNameIsForbidden() {
-        User user = User.builder().withTestValues().loginName("").build();
+    public void validateThatCreatingUserWithTooShortPasswordIsForbidden() {
+        User user = User.builder().withTestValues().password("x").build();
 
         Response response = postUser(user);
 
-        Assertions.assertEquals(500, response.statusCode());
+        Assertions.assertEquals(422, response.statusCode());
         Assertions.assertEquals(404, getUser(user).statusCode());
     }
-}
 
-/*
-   tried: adding a few users with the same login, email,
-   already expired date in payment card, wrong date format in payment card,
-   added user with one-char length password
-*/
+    @Test
+    public void validateThatCreatingUserWithLoginNameThatAlreadyExistsIsForbidden() {
+        User user1 = User.builder().withTestValues().loginName("existingLogin").build();
+        User user2 = User.builder().withTestValues().loginName("existingLogin").build();
+
+        Response response1 = postUser(user1);
+        Response response2 = postUser(user2);
+
+        Assertions.assertEquals(201, response1.statusCode());
+        Assertions.assertEquals(409, response2.statusCode());
+    }
+}
