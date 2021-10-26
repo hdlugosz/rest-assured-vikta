@@ -179,15 +179,9 @@ public class DatabaseController {
         ArrayList<Integer> addressIDs = listAddressIDsToBeDeleted(latestAddressID);
         ArrayList<Integer> paymentCardIDs = listPaymentCardIDsToBeDeleted(latestPaymentCardID);
 
-        for (int id : userIDs) {
-            deleteUserByID(id);
-        }
-        for (int id : addressIDs) {
-            deleteAddressByID(id);
-        }
-        for (int id : paymentCardIDs) {
-            deletePaymentCardByID(id);
-        }
+        userIDs.forEach(id -> { deleteUserByID(id); });
+        addressIDs.forEach(id -> { deleteAddressByID(id); });
+        paymentCardIDs.forEach(id -> { deletePaymentCardByID(id); });
     }
 
     public int getLatestUserID() {
