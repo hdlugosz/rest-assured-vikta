@@ -1,13 +1,12 @@
 package vikta.test;
 
+import vikta.database.DatabaseController;
 import vikta.utils.ConfigLoader;
 import io.restassured.response.Response;
 import vikta.entities.Address;
 import vikta.entities.PaymentCard;
 import vikta.entities.User;
 import org.junit.jupiter.api.*;
-
-import java.util.ArrayList;
 
 import org.apache.logging.log4j.*;
 
@@ -16,8 +15,8 @@ import static vikta.endpoints.AddressEndpoints.*;
 import static vikta.endpoints.PaymentCardEndpoints.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TestEndpoints {
-    private static final Logger logger = LogManager.getLogger(TestEndpoints.class);
+public class ViktaTest {
+    private static final Logger logger = LogManager.getLogger(ViktaTest.class);
     private final ConfigLoader properties = ConfigLoader.getInstance();
 
     private final DatabaseController db = new DatabaseController(
@@ -26,49 +25,38 @@ public class TestEndpoints {
             properties.getPropertyValue("dbPassword")
     );
 
-    private final ArrayList<Integer> usersToCleanUp = new ArrayList<>();
-    private final ArrayList<Integer> addressesToCleanUp = new ArrayList<>();
-    private final ArrayList<Integer> paymentCardsToCleanUp = new ArrayList<>();
+    @BeforeAll
+    public void setUp() {
+        db.prepareDatabase();
+    }
 
     @AfterAll
-    public void cleanUpDB() {
-        for (int id : usersToCleanUp) {
-            db.deleteUserById(id);
-        }
-        for (int id : paymentCardsToCleanUp) {
-            db.deletePaymentCardById(id);
-        }
-        for (int id : addressesToCleanUp) {
-            db.deleteAddressById(id);
-        }
+    public void tearDown() {
+        db.cleanUpDatabase();
     }
 
     @Test
     public void validateAddressExistence() {
         Address address = Address.builder().withTestValues().randomId().build();
         db.addNewAddress(address);
-        addressesToCleanUp.add(address.getId());
 
         Response response = getAddress(address);
 
         Address responseAddress = response.as(Address.class);
-        Assertions.assertEquals(address.getAddressNickname(), responseAddress.getAddressNickname());
+        Assertions.assertEquals(address, responseAddress);
         Assertions.assertEquals(200, response.statusCode());
-        Assertions.assertTrue(db.existsAddress(address.getId()));
     }
 
     @Test
     public void validateUserExistence() {
         User user = User.builder().withTestValues().randomId().build();
         db.addNewUser(user);
-        usersToCleanUp.add(user.getId());
 
         Response response = getUser(user);
 
         User responseUser = response.as(User.class);
-        Assertions.assertEquals(user.getEmail(), responseUser.getEmail());
+        Assertions.assertEquals(user, responseUser);
         Assertions.assertEquals(200, response.statusCode());
-        Assertions.assertTrue(db.existsUser(user.getId()));
     }
 
     @Test
@@ -77,22 +65,23 @@ public class TestEndpoints {
 
         Response response = postUser(user);
 
+        User responseUser = response.as(User.class);
+        Assertions.assertTrue(user.equalsExceptIDField(responseUser));
         Assertions.assertEquals(201, response.statusCode());
-        Assertions.assertTrue(db.existsUser(db.selectUserIdByLogin(user.getLoginName())));
-        logger.debug("created user: " + db.selectUserIdByLogin(user.getLoginName()));
-        usersToCleanUp.add(db.selectUserIdByLogin(user.getLoginName()));
+        Assertions.assertTrue(db.existsUser(responseUser.getId()));
+        logger.debug("created user: " + responseUser.getId());
     }
 
     @Test
     public void validateDeletingUser() {
         User user = User.builder().withTestValues().randomId().build();
         db.addNewUser(user);
-        usersToCleanUp.add(user.getId());
 
         Response response = deleteUser(user);
 
         Assertions.assertEquals(200, response.statusCode());
         Assertions.assertFalse(db.existsUser(user.getId()));
+        logger.debug("deleted user: " + user.getId());
     }
 
     @Test
@@ -106,17 +95,16 @@ public class TestEndpoints {
     }
 
     @Test
-    public void validateUpdatingPaymentCard() {
+    public void validateUpdatingPaymentCardExpirationDate() {
         String newExpirationDate = "2023-10-31";
         PaymentCard paymentCard = PaymentCard.builder().withTestValues().randomId().build();
         db.addNewPaymentCard(paymentCard);
-        paymentCardsToCleanUp.add(paymentCard.getId());
         paymentCard.setExpirationDate(newExpirationDate);
 
         Response response = putPaymentCard(paymentCard);
 
         PaymentCard responsePaymentCard = response.as(PaymentCard.class);
-        Assertions.assertEquals(newExpirationDate, responsePaymentCard.getExpirationDate());
+        Assertions.assertEquals(paymentCard, responsePaymentCard);
         Assertions.assertEquals(200, response.statusCode());
     }
 
@@ -134,12 +122,14 @@ public class TestEndpoints {
     public void validateFindingExistingUserBySurname() {
         User user = User.builder().withTestValues().randomId().build();
         db.addNewUser(user);
-        usersToCleanUp.add(user.getId());
 
         Response response = getUserListUsingSurname(user);
 
-        ArrayList responseUserList = response.as(ArrayList.class);
-        Assertions.assertFalse(responseUserList.isEmpty());
+        User[] responseUserArray = response.as(User[].class);
+        for (User responseUser : responseUserArray) {
+            Assertions.assertEquals(user.getSurname(), responseUser.getSurname());
+        }
+        Assertions.assertNotEquals(0, responseUserArray.length);
         Assertions.assertEquals(200, response.statusCode());
     }
 
@@ -149,8 +139,50 @@ public class TestEndpoints {
 
         Response response = getUserListUsingSurname(user);
 
-        ArrayList responseUserList = response.as(ArrayList.class);
-        Assertions.assertTrue(responseUserList.isEmpty());
+        User[] responseUserArray = response.as(User[].class);
+        Assertions.assertEquals(0, responseUserArray.length);
         Assertions.assertEquals(200, response.statusCode());
+    }
+
+    @Test
+    public void validateThatCreatingUserWithInvalidEmailIsForbidden() {
+        User user = User.builder().withTestValues().email("emailWithoutAtSign.com").build();
+
+        Response response = postUser(user);
+
+        Assertions.assertEquals(422, response.statusCode());
+        Assertions.assertEquals(404, getUser(user).statusCode());
+    }
+
+    @Test
+    public void validateThatCreatingUserWithEmptyNameIsForbidden() {
+        User user = User.builder().withTestValues().firstName("").build();
+
+        Response response = postUser(user);
+
+        Assertions.assertEquals(422, response.statusCode());
+        Assertions.assertEquals(404, getUser(user).statusCode());
+    }
+
+    @Test
+    public void validateThatCreatingUserWithTooShortPasswordIsForbidden() {
+        User user = User.builder().withTestValues().password("x").build();
+
+        Response response = postUser(user);
+
+        Assertions.assertEquals(422, response.statusCode());
+        Assertions.assertEquals(404, getUser(user).statusCode());
+    }
+
+    @Test
+    public void validateThatCreatingUserWithLoginNameThatAlreadyExistsIsForbidden() {
+        User user1 = User.builder().withTestValues().loginName("existingLogin").build();
+        User user2 = User.builder().withTestValues().loginName("existingLogin").build();
+
+        Response response1 = postUser(user1);
+        Response response2 = postUser(user2);
+
+        Assertions.assertEquals(201, response1.statusCode());
+        Assertions.assertEquals(409, response2.statusCode());
     }
 }

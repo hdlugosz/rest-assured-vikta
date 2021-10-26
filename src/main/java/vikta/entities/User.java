@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.Objects;
+
 import static vikta.utils.Utils.generateRandomFourDigitNumber;
 
 @Builder
@@ -26,7 +28,7 @@ public class User {
 
     public static class UserBuilder {
         public UserBuilder withTestValues() {
-            this.addressIds(new int[]{0})
+            this.addressIds(new int[]{})
                     .email("testEmail@mail.com")
                     .firstName("testFirstName")
                     .id(9999)
@@ -34,7 +36,7 @@ public class User {
                     .middleName("testMiddleName")
                     .password("testPassword")
                     .pathToAvatarImage("path.com")
-                    .paymentCardIds(new int[]{0})
+                    .paymentCardIds(new int[]{})
                     .surname("testSurname");
             return this;
         }
@@ -42,5 +44,17 @@ public class User {
         public UserBuilder randomId() {
             return this.id(generateRandomFourDigitNumber());
         }
+    }
+
+    public boolean equalsExceptIDField(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(email, user.email)
+                && Objects.equals(firstName, user.firstName)
+                && Objects.equals(loginName, user.loginName)
+                && Objects.equals(middleName, user.middleName)
+                && Objects.equals(password, user.password)
+                && Objects.equals(surname, user.surname);
     }
 }
